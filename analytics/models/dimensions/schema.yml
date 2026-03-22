@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: actor
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: category
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: comment
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: discussion
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: forkee
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: issue
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: label
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: milestone
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: org
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: pull_request
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: release
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: repo
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: review
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: type
+    columns:
+      - name: id
+        tests:
+          - not_null
+  - name: user
+    columns:
+      - name: id
+        tests:
+          - not_null

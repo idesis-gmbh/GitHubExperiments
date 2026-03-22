@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: event
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+      - name: actor_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('actor')
+                field: id
+      - name: repo_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('repo')
+                field: id
+      - name: org_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('org')
+                field: id
+      - name: type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PushEvent', 'PullRequestEvent', 'IssuesEvent', 
+                        'WatchEvent', 'ForkEvent', 'CreateEvent', 
+                        'DeleteEvent', 'ReleaseEvent', 'IssueCommentEvent',
+                        'PullRequestReviewEvent', 'PullRequestReviewCommentEvent',
+                        'CommitCommentEvent', 'MemberEvent', 'PublicEvent',
+                        'GollumEvent', 'DiscussionEvent']
