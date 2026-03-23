@@ -72,7 +72,6 @@ root if the GitHub Archive schema changes:
 uv run python main.py
 ```
 ## Snapshots
-## Snapshots
 
 The generator supports two strategies for dimension generation:
 
@@ -91,7 +90,21 @@ for details on the SCD2 implementation.
 
 ## Dimensions
 
-Each dimension is a view over its corresponding snapshot, filtered to current state:
+Most dimensions are generated using SCD1 — the current state of each entity is derived 
+directly from the event stream:
+```sql
+select distinct on (id) *
+from (
+    select distinct
+        ...
+    from {{ ref('raw_event') }}
+    where ... is not null
+)
+order by all
+```
+
+For dimensions generated with SCD2, a thin view over the corresponding snapshot is 
+generated instead:
 ```sql
 select distinct *
 from {{ ref('snapshot_name') }}
