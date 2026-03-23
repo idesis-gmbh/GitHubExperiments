@@ -37,25 +37,6 @@ serves as the source for all downstream models.
 
 DuckDB's `read_json_auto` exposes the full nested schema of the GitHub Archive events 
 via its type system. `sd.py` traverses this recursively to build a Python representation 
-of all ~700 attributes, then generates the dbt SQL files for snapshots, dimensions, and 
-the fact table.
-
-A few design decisions are baked into the generated SQL:
-
-- Structs with an `id` field are treated as entity references and reduced to their `id`
-- Structs without an `id` field are flattened into the parent model
-- List-typed columns are excluded
-- `performed_via_github_app` is excluded
-
-The generated files are checked in — you only need to rerun `sd.py` from the project 
-root if the GitHub Archive schema changes:
-```bash
-uv run python main.py
-```
-## Schema Discovery
-
-DuckDB's `read_json_auto` exposes the full nested schema of the GitHub Archive events 
-via its type system. `sd.py` traverses this recursively to build a Python representation 
 of all ~700 attributes, then generates the dbt SQL files for dimensions and the fact table.
 
 A few design decisions are baked into the generated SQL:
@@ -71,6 +52,7 @@ root if the GitHub Archive schema changes:
 ```bash
 uv run python main.py
 ```
+
 ## Snapshots
 
 The generator supports two strategies for dimension generation:
