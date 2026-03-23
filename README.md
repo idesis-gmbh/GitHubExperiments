@@ -18,8 +18,8 @@ with slowly changing dimensions, running entirely locally.
 
 Clone the repository and install dependencies:
 ```bash
-git clone https://github.com/idesis-gmbh/wikiexperiments.git
-cd wikiexperiments
+git clone https://github.com/idesis-gmbh/githubexperiments.git
+cd githubexperiments
 uv sync
 ```
 
