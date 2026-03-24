@@ -1,3 +1,7 @@
+{{ config(
+    unique_key='datetime'
+) }}
+
 select distinct
     date_trunc('hour', created_at) as datetime,
     date_part('hour', created_at) as hour,

@@ -4,4 +4,4 @@ select
     round(100.0 * sum(event_count) / sum(sum(event_count)) over (), 2) as pct
 from activity_by_date
 group by repo_type
-order by event_count desc
+order by event_count desc;

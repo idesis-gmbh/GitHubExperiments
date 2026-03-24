@@ -1,4 +1,8 @@
 
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct on (id) *
 from (
 select distinct
@@ -15,16 +19,6 @@ select distinct
     payload.discussion."locked" AS "locked",
     payload.discussion."node_id" AS "node_id",
     payload.discussion."number" AS "number",
-    payload.discussion."reactions"."+1" AS "reactions_+1",
-    payload.discussion."reactions"."-1" AS "reactions_-1",
-    payload.discussion."reactions"."confused" AS "reactions_confused",
-    payload.discussion."reactions"."eyes" AS "reactions_eyes",
-    payload.discussion."reactions"."heart" AS "reactions_heart",
-    payload.discussion."reactions"."hooray" AS "reactions_hooray",
-    payload.discussion."reactions"."laugh" AS "reactions_laugh",
-    payload.discussion."reactions"."rocket" AS "reactions_rocket",
-    payload.discussion."reactions"."total_count" AS "reactions_total_count",
-    payload.discussion."reactions"."url" AS "reactions_url",
     payload.discussion."repository_url" AS "repository_url",
     payload.discussion."state" AS "state",
     payload.discussion."state_reason" AS "state_reason",

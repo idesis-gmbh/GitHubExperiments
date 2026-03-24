@@ -1,4 +1,8 @@
 
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct on (id) *
 from (
 select distinct

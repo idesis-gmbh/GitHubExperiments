@@ -3,8 +3,10 @@ from string import Template
 import duckdb
 
 EXCLUDED_COLUMNS = {
-    "performed_via_github_app"
-}  # always a nested struct; excluded by policy
+    "reactions",  # optional?
+    "discussion_url",  # optional?
+    "performed_via_github_app",  # always a nested struct; excluded by policy
+}
 
 
 def deeply_nested_schema(data_type):
@@ -75,9 +77,9 @@ def get_deeply_nested_columns(struct):
 def introspect_schema(connection, dump_schema=False, dump_entity_candidates=False):
     cursor = connection.cursor()
     cursor.execute("""
-        SELECT * 
-        FROM raw_event
-    """)
+SELECT * 
+FROM raw_event
+""")
     schema = {}
     for key in cursor.description:
         column_name, data_type = key[0], key[1]
@@ -123,6 +125,10 @@ where $id is not null
 
 def generate_scd1(name, sqls):
     dimension = Template("""
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct on (id) *
 from ($sqls)
 order by all
@@ -173,6 +179,10 @@ def generate_fact(struct):
     entity_columns = get_selected_columns(struct)
     columns = (f'{name} AS "{alias}"' for name, alias in entity_columns)
     fact = Template("""
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct
 $columns
 from {{ ref('raw_event') }}

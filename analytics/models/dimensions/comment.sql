@@ -1,4 +1,8 @@
 
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct on (id) *
 from (
 select distinct
@@ -22,16 +26,6 @@ select distinct
     payload.comment."position" AS "position",
     payload.comment."pull_request_review_id" AS "pull_request_review_id",
     payload.comment."pull_request_url" AS "pull_request_url",
-    payload.comment."reactions"."+1" AS "reactions_+1",
-    payload.comment."reactions"."-1" AS "reactions_-1",
-    payload.comment."reactions"."confused" AS "reactions_confused",
-    payload.comment."reactions"."eyes" AS "reactions_eyes",
-    payload.comment."reactions"."heart" AS "reactions_heart",
-    payload.comment."reactions"."hooray" AS "reactions_hooray",
-    payload.comment."reactions"."laugh" AS "reactions_laugh",
-    payload.comment."reactions"."rocket" AS "reactions_rocket",
-    payload.comment."reactions"."total_count" AS "reactions_total_count",
-    payload.comment."reactions"."url" AS "reactions_url",
     payload.comment."subject_type" AS "subject_type",
     payload.comment."updated_at" AS "updated_at",
     payload.comment."url" AS "url",

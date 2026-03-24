@@ -1,3 +1,7 @@
+{{ config(
+    unique_key='date'
+) }}
+
 select distinct
     cast(created_at as date) as date,
     date_part('year', created_at) as year,

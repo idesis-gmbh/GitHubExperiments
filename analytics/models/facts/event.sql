@@ -1,4 +1,8 @@
 
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct
     "actor"."id" AS "actor_id",
     "created_at" AS "created_at",

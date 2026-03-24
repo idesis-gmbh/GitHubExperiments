@@ -18,12 +18,12 @@ models:
     staging:
       +materialized: table
     dimensions:
-      +materialized: view
+      +materialized: incremental
     facts:
-      +materialized: view
+      +materialized: incremental
     marts:
       +materialized: view
 
-snapshots:
-  analytics:
-    +target_schema: snapshots      
+# snapshots:
+#   analytics:
+#     +target_schema: snapshots      

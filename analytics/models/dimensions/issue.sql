@@ -1,4 +1,8 @@
 
+{{ config(
+    unique_key='id'
+) }}
+
 select distinct on (id) *
 from (
 select distinct
@@ -29,16 +33,6 @@ select distinct
     payload.issue."pull_request"."merged_at" AS "pull_request_merged_at",
     payload.issue."pull_request"."patch_url" AS "pull_request_patch_url",
     payload.issue."pull_request"."url" AS "pull_request_url",
-    payload.issue."reactions"."+1" AS "reactions_+1",
-    payload.issue."reactions"."-1" AS "reactions_-1",
-    payload.issue."reactions"."confused" AS "reactions_confused",
-    payload.issue."reactions"."eyes" AS "reactions_eyes",
-    payload.issue."reactions"."heart" AS "reactions_heart",
-    payload.issue."reactions"."hooray" AS "reactions_hooray",
-    payload.issue."reactions"."laugh" AS "reactions_laugh",
-    payload.issue."reactions"."rocket" AS "reactions_rocket",
-    payload.issue."reactions"."total_count" AS "reactions_total_count",
-    payload.issue."reactions"."url" AS "reactions_url",
     payload.issue."repository_url" AS "repository_url",
     payload.issue."state" AS "state",
     payload.issue."state_reason" AS "state_reason",
