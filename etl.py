@@ -17,85 +17,115 @@ CREATE TABLE IF NOT EXISTS control.processed_files (
 """)
 
 
-def filter_incoming_files(connection, incoming_files):
-    processed_files = {
+def filter_incoming(connection, incoming):
+    processed = {
         row[0]
         for row in connection.execute(
             "SELECT filename FROM control.processed_files"
         ).fetchall()
     }
-    new_files = [
-        file for file in incoming_files if os.path.basename(file) not in processed_files
-    ]
-    return new_files
+    return [filename for filename in incoming if filename not in processed]
 
 
-def acknowledge_new_file(connection, file):
+def acknowledge_file(connection, filename):
     connection.execute(
         "INSERT INTO control.processed_files (filename) VALUES (?)",
-        [os.path.basename(file)],
+        [filename],
     )
 
 
-def run(prepare_schema_discovery=False):
-    incoming_files = sorted(glob.glob("data/gharchive/*.json.gz"))
+def dbt_run_select_staging(filename):
+    result = subprocess.run(
+        [
+            "dbt",
+            "run",
+            "--project-dir",
+            "analytics",
+            "--select",
+            "staging",
+            "--vars",
+            f'{{"filename": "{filename}"}}',
+        ]
+    )
+    if result.returncode != 0:
+        print("dbt run --select staging failed")
+    return result.returncode
+
+
+def dbt_snapshot():
+    result = subprocess.run(
+        [
+            "dbt",
+            "snapshot",
+            "--project-dir",
+            "analytics",
+        ]
+    )
+    if result.returncode != 0:
+        print("dbt snapshot failed")
+    return result.returncode
+
+
+def dbt_run_exclude_staging():
+    result = subprocess.run(
+        [
+            "dbt",
+            "run",
+            "--project-dir",
+            "analytics",
+            "--exclude",
+            "staging",
+        ]
+    )
+    if result.returncode != 0:
+        print("dbt run --exclude staging failed")
+    return result.returncode
+
+
+def dbt_test():
+    result = subprocess.run(
+        [
+            "dbt",
+            "test",
+            "--project-dir",
+            "analytics",
+        ]
+    )
+    if result.returncode != 0:
+        print("dbt test failed")
+    return result.returncode
+
+
+def run_file(filename, prepare_schema_discovery=False):
+    if dbt_run_select_staging(filename) != 0:
+        return True
+    if prepare_schema_discovery:
+        return False
+    if dbt_snapshot() != 0:
+        return True
+    if dbt_run_exclude_staging() != 0:
+        return True
+    if dbt_test() != 0:
+        return True
+    return False
+
+
+def run_files(prepare_schema_discovery=False):
+    incoming = sorted(
+        os.path.basename(filename) for filename in glob.glob("data/gharchive/*.json.gz")
+    )
     with duckdb.connect("dev.duckdb") as connection:
         create_control(connection)
-        new_files = filter_incoming_files(connection, incoming_files)
-    for file in new_files:
-        result = subprocess.run(
-            [
-                "dbt",
-                "run",
-                "--project-dir",
-                "analytics",
-                "--select",
-                "staging",
-                "--vars",
-                f'{{"file": "{os.path.basename(file)}"}}',
-            ]
-        )
-        if result.returncode != 0:
-            print("dbt run --select staging failed")
-            break
-
+        filenames = filter_incoming(connection, incoming)
+    for filename in filenames:
+        if run_file(filename, prepare_schema_discovery=prepare_schema_discovery):
+            return True
         if prepare_schema_discovery:
             break
-
-        result = subprocess.run(
-            [
-                "dbt",
-                "snapshot",
-                "--project-dir",
-                "analytics",
-            ]
-        )
-        if result.returncode != 0:
-            print("dbt snapshot failed")
-            break
-
-        result = subprocess.run(
-            ["dbt", "run", "--project-dir", "analytics", "--exclude", "staging"]
-        )
-        if result.returncode != 0:
-            print("dbt run --exclude staging failed")
-            break
-
-        result = subprocess.run(
-            [
-                "dbt",
-                "test",
-                "--project-dir",
-                "analytics",
-            ]
-        )
-        if result.returncode != 0:
-            print("dbt test failed")
-            break
-
         with duckdb.connect("dev.duckdb") as connection:
-            acknowledge_new_file(connection, file)
+            acknowledge_file(connection, filename)
+    return False
 
 
 if __name__ == "__main__":
-    run()
+    run_files()

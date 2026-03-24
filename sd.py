@@ -1,9 +1,10 @@
+import json
 import pprint
 from string import Template
+import sys
 import duckdb
 
 EXCLUDED_COLUMNS = {
-    "reactions",  # optional?
     "discussion_url",  # optional?
     "performed_via_github_app",  # always a nested struct; excluded by policy
 }
@@ -21,55 +22,83 @@ def deeply_nested_schema(data_type):
         return str(data_type)
 
 
-def find_entity_candidates(root, schema):
+def canonical_sample(schema):
+    if isinstance(schema, dict):
+        result = {}
+        for key, value in sorted(schema.items()):
+            result[key] = canonical_sample(value)
+        return result
+    elif isinstance(schema, list):
+        result = []
+        result.append(canonical_sample(schema[0]))
+        return result
+    else:
+        assert isinstance(schema, str)
+        if schema == "BOOLEAN":
+            return False
+        elif schema == "BIGINT":
+            return 0
+        elif schema == "JSON":
+            return None
+        elif schema == "TIMESTAMP":
+            return str("2026-01-01 00:00:00.000000")
+        elif schema == "VARCHAR":
+            return "VARCHAR"
+        assert False
+
+
+def entity_candidates(root, schema):
     result = []
     if isinstance(schema, dict):
         for key, value in schema.items():
             name = root + "." + key
             if isinstance(value, dict):
                 result.append((name, "id" in value))
-            result.extend(find_entity_candidates(name, value))
+            result.extend(entity_candidates(name, value))
     elif isinstance(schema, list):
         name = root + "[]"
         result.append((name, False))
-        result.extend(find_entity_candidates(name, schema[0]))
+        result.extend(entity_candidates(name, schema[0]))
     return sorted(result)
 
 
-def get_base_columns(struct):
+def base_columns(struct):
     assert isinstance(struct, dict)
     return [
         key
         for key in struct
         if key not in EXCLUDED_COLUMNS
+        and not key.endswith("?")
         and not isinstance(struct[key], dict)
         and not isinstance(struct[key], list)
     ]
 
 
-def get_nested_columns(struct):
+def nested_columns(struct):
     assert isinstance(struct, dict)
     return [
         f"{key}.id"
         for key in struct
         if key not in EXCLUDED_COLUMNS
+        and not key.endswith("?")
         and isinstance(struct[key], dict)
         and "id" in struct[key]
     ]
 
 
-def get_deeply_nested_columns(struct):
+def deeply_nested_columns(struct):
     assert isinstance(struct, dict)
     return (
-        get_base_columns(struct)
-        + get_nested_columns(struct)
+        base_columns(struct)
+        + nested_columns(struct)
         + [
             f"{key}.{struct_key}"
             for key in struct
             if key not in EXCLUDED_COLUMNS
+            and not key.endswith("?")
             and isinstance(struct[key], dict)
             and "id" not in struct[key]
-            for struct_key in get_deeply_nested_columns(struct[key])
+            for struct_key in deeply_nested_columns(struct[key])
         ]
     )
 
@@ -87,14 +116,14 @@ FROM raw_event
     if dump_schema:
         pprint.pprint(schema)
     if dump_entity_candidates:
-        pprint.pprint(find_entity_candidates("raw_event", schema))
+        pprint.pprint(entity_candidates("raw_event", schema))
     return schema
 
 
 def get_selected_columns(struct):
     return sorted(
         (".".join(f'"{token}"' for token in key.split(".")), key.replace(".", "_"))
-        for key in get_deeply_nested_columns(struct)
+        for key in deeply_nested_columns(struct)
     )
 
 
@@ -191,7 +220,7 @@ from {{ ref('raw_event') }}
         print(fact, file=file)
 
 
-def generate_model(schema):
+def generate_dimensions_and_facts(schema):
     generate_dimension(schema, ["raw_event.actor"], "actor")
     generate_dimension(schema, ["raw_event.org"], "org")
     generate_dimension(
@@ -277,11 +306,23 @@ def generate_model(schema):
     generate_fact(schema)
 
 
-def run():
+def generate_canonical_sample(filename):
     with duckdb.connect("dev.duckdb") as connection:
         schema = introspect_schema(connection)
-        generate_model(schema)
+        sample = canonical_sample(schema)
+        with open(f"data/gharchive/{filename}", "w", encoding="utf+8") as file:
+            json.dump(sample, file, indent=2)
+
+
+def generate_model():
+    with duckdb.connect("dev.duckdb") as connection:
+        schema = introspect_schema(connection)
+        generate_dimensions_and_facts(schema)
 
 
 if __name__ == "__main__":
-    run()
+    schema_discovery = len(sys.argv) > 1
+    if schema_discovery and sys.argv[1] == "--canonical-sd":
+        generate_canonical_sample()
+    elif schema_discovery and sys.argv[1] == "--infer-sd":
+        generate_model()
