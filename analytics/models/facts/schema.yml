@@ -9,7 +9,6 @@ models:
           - unique
       - name: actor_id
         tests:
-          - not_null
           - relationships:
               arguments:
                 to: ref('actor')

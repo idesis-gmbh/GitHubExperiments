@@ -7,7 +7,9 @@ import duckdb
 
 def create_control(connection):
     connection.execute("""
-CREATE SCHEMA IF NOT EXISTS control;
+CREATE SCHEMA IF NOT EXISTS control
+""")
+    connection.execute("""
 CREATE TABLE IF NOT EXISTS control.processed_files (
     filename VARCHAR PRIMARY KEY,
     processed_at TIMESTAMP DEFAULT current_timestamp
@@ -35,7 +37,7 @@ def acknowledge_new_file(connection, file):
     )
 
 
-def run(init=False):
+def run(prepare_schema_discovery=False):
     incoming_files = sorted(glob.glob("data/gharchive/*.json.gz"))
     with duckdb.connect("dev.duckdb") as connection:
         create_control(connection)
@@ -54,10 +56,10 @@ def run(init=False):
             ]
         )
         if result.returncode != 0:
-            print(f"dbt run --select staging failed")
+            print("dbt run --select staging failed")
             break
 
-        if init:
+        if prepare_schema_discovery:
             break
 
         result = subprocess.run(
@@ -69,14 +71,14 @@ def run(init=False):
             ]
         )
         if result.returncode != 0:
-            print(f"dbt snapshot failed")
+            print("dbt snapshot failed")
             break
 
         result = subprocess.run(
             ["dbt", "run", "--project-dir", "analytics", "--exclude", "staging"]
         )
         if result.returncode != 0:
-            print(f"dbt run --exclude staging failed")
+            print("dbt run --exclude staging failed")
             break
 
         result = subprocess.run(
@@ -88,7 +90,7 @@ def run(init=False):
             ]
         )
         if result.returncode != 0:
-            print(f"dbt test failed")
+            print("dbt test failed")
             break
 
         with duckdb.connect("dev.duckdb") as connection:
@@ -96,5 +98,4 @@ def run(init=False):
 
 
 if __name__ == "__main__":
-    init = len(sys.argv) > 1
-    run(init)
+    run()

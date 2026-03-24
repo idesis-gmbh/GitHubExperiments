@@ -76,3 +76,16 @@ models:
       - name: id
         tests:
           - not_null
+
+  - name: date
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - unique
+  - name: time
+    columns:
+      - name: datetime
+        tests:
+          - not_null
+          - unique

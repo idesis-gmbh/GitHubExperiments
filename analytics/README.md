@@ -11,10 +11,10 @@ group into entities (user, repo, actor, issue, etc.), which produces a star sche
 a manageable number of attributes per table. This is not a deliberate application of 
 Kimball's dimensional modeling methodology — it's the shape the data naturally suggests.
 
-SCD2 follows from the same pragmatic reasoning: once entities are extracted as separate 
-tables, overwriting current state would lose information present in the event stream. 
-dbt snapshots implement SCD2 with minimal configuration, making it the simplest way to 
-preserve the full observed history of each entity.
+SCD1 is the default strategy for dimension generation: the current state of each entity 
+is derived directly from the event stream using `distinct on (id)`. This is idempotent — 
+re-importing the same data produces the same result. SCD2 is available for cases where 
+full change history is required, but is not idempotent if the same data is imported twice.
 
 Note that the resulting dimensions reflect entity state *as observed in events* — not a 
 complete change history. A repo renamed between two events will show both names, but 
@@ -22,16 +22,23 @@ silent changes (never appearing in an event) are not captured.
 
 ## Staging
 
-The staging layer reads GitHub Archive files directly from `data/gharchive/` using 
-DuckDB's `read_json_auto` with `union_by_name=True`, which handles the schema 
-variation across event types by unioning all fields:
+The staging layer reads a single GitHub Archive file at a time, passed via a dbt 
+variable by the incremental pipeline:
 ```sql
+with raw_event as (
+    select *
+    from read_json_auto(
+        'data/gharchive/{{ var("file") }}',
+        union_by_name=True
+    )
+)
 select *
-from read_json_auto('../data/gharchive/*.json.gz', union_by_name=True)
+from raw_event
 ```
 
-This produces a single `raw_event` table with a wide, deeply nested schema that 
-serves as the source for all downstream models.
+`union_by_name=True` handles the schema variation across event types by unioning all 
+fields across the file. This produces a single `raw_event` table with a wide, deeply 
+nested schema that serves as the source for all downstream models.
 
 ## Schema Discovery
 
@@ -44,13 +51,13 @@ A few design decisions are baked into the generated SQL:
 - Structs with an `id` field are treated as entity references and reduced to their `id`
 - Structs without an `id` field are flattened into the parent model
 - List-typed columns are excluded
-- `performed_via_github_app` is excluded
+- `performed_via_github_app` and optional attributes are excluded
 - Entities where `id` is null are excluded (events where the entity was not present)
 
-The generated files are checked in — you only need to rerun `sd.py` from the project 
-root if the GitHub Archive schema changes:
+The generated files are checked in — schema discovery only needs to be rerun after a 
+database reset or if the GitHub Archive schema changes:
 ```bash
-uv run python main.py
+uv run main.py --sd
 ```
 
 ## Snapshots
@@ -65,7 +72,9 @@ is not preserved.
 `dbt_valid_from` and `dbt_valid_to` tracking the validity period. Preserves the 
 full observed history but is not idempotent if the same data is imported twice.
 
-Currently all dimensions use SCD1. 
+Currently all dimensions use SCD1. The `dbt snapshot` step runs as part of the 
+incremental pipeline but is a no-op until a dimension is explicitly configured 
+for SCD2 in `sd.py`.
 
 See the [dbt snapshots documentation](https://docs.getdbt.com/docs/build/snapshots) 
 for details on the SCD2 implementation.
@@ -128,7 +137,7 @@ Both marts use `LEFT JOIN` on `org` to preserve events from personal repositorie
 
 ## Analyses
 
-The `analytics/analyses/` directory contains example queries that can be run directly 
+The `analyses/` directory contains example queries that can be run directly 
 against `dev.duckdb` using the DuckDB CLI or any SQL client:
 
 - **Event type distribution** — what fraction of activity is push, PR, issue, etc.

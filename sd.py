@@ -277,7 +277,11 @@ def generate_model(schema):
     generate_fact(schema)
 
 
-if __name__ == "__main__":
+def run():
     with duckdb.connect("dev.duckdb") as connection:
         schema = introspect_schema(connection)
         generate_model(schema)
+
+
+if __name__ == "__main__":
+    run()

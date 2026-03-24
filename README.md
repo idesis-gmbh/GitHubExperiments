@@ -41,26 +41,39 @@ wget -P data/gharchive/ https://data.gharchive.org/2026-03-{01..31}-{0..23}.json
 
 | Data | Compressed | DuckDB |
 |------|------------|--------|
-| 1 hour | ~50 MB | ~250 MB |
-| 1 day | ~1.2 GB | ~6 GB |
-| 1 month | ~30 GB | ~150 GB |
+| 1 hour | ~50 MB | ~150 MB |
+| 1 day | ~1.2 GB | ~3.6 GB |
+| 1 month | ~30 GB | ~90 GB |
 
-### Running the Pipeline
+## Running the Pipeline
 
-Build the warehouse:
+On first run, process the first file and generate dbt models from the discovered schema:
 ```bash
-dbt build --project-dir analytics
+uv run main.py --sd
 ```
 
-This runs the full pipeline — snapshots, dimensions, facts, and marts — and writes the 
-result to `analytics/dev.duckdb`.
+The generated SQL models are checked in — `--sd` only needs to be rerun after a 
+database reset or if the GitHub Archive schema changes.
 
-## Project structure
+Then process all remaining files incrementally:
+```bash
+uv run main.py
+```
+
+Each file is processed through the full dbt pipeline — staging, snapshots, dimensions,
+facts, and marts — and acknowledged in the control schema on success. Re-running
+skips already processed files.
+
+## Exploring the Data
+
+See `analytics/README.md` for the data model, schema discovery details, and example 
+analyses.
 
 ## Project Structure
 ```
 githubexperiments/
 ├── main.py          # regenerate dbt models from schema discovery
+├── etl.py           # incremental pipeline: process new archive files into the warehouse
 ├── sd.py            # schema discovery and SQL code generation
 ├── pyproject.toml   # project metadata and dependencies
 ├── uv.lock          # locked dependencies
@@ -79,24 +92,6 @@ githubexperiments/
 └── data/            # gitignored — local data only
     └── gharchive/   # downloaded .json.gz files
 ```
-
-## Schema Discovery
-
-GitHub Archive events contain deeply nested, variable JSON structures that differ 
-by event type. Rather than writing the dbt models by hand, `sd.py` introspects the 
-schema automatically via DuckDB's type system and generates the staging, snapshot, 
-and dimension SQL files.
-
-You only need to rerun this if the GitHub Archive schema changes:
-```bash
-uv run python main.py
-```
-
-See `analytics/README.md` for details on the generated model structure.
-
-## Exploring the Data
-
-See `analytics/README.md` for the full data model and example analyses.
 
 ## Further Reading
 

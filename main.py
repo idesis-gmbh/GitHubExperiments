@@ -1,12 +1,12 @@
-import duckdb
+import sys
+import etl
 import sd
 
 
-def main():
-    with duckdb.connect("dev.duckdb") as connection:
-        schema = sd.introspect_schema(connection)
-        sd.generate_model(schema)
-
-
 if __name__ == "__main__":
-    main()
+    schema_discovery = len(sys.argv) > 1 and sys.argv[1] == "--sd"
+    if schema_discovery:
+        etl.run(prepare_schema_discovery=True)
+        sd.run()
+    else:
+        etl.run()
