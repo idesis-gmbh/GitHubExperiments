@@ -9,7 +9,7 @@ select
     o.login as org_login,
     count(*) as event_count
 from {{ ref('event') }} e
-inner join {{ ref('time') }} t on cast(e.created_at as date) = t.datetime
+inner join {{ ref('time') }} t on date_trunc('hour', e.created_at) = t.datetime
 left join {{ ref('repo') }} r on e.repo_id = r.id
 left join {{ ref('actor') }} a on e.actor_id = a.id
 left join {{ ref('org') }} o on e.org_id = o.id
