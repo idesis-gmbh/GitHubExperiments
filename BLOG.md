@@ -14,6 +14,8 @@ GitHub-Archive-Events sind kein einfaches, flaches JSON. Je nach Event-Typ unter
 
 Unsere Lösung: automatische **Schema Discovery**. Ein Python-Skript traversiert den vollständigen Typenbaum, den DuckDB aus dem rohen JSON ableitet, und generiert daraus direkt die SQL-Modelle für die weitere Pipeline. Structs mit `id`-Feld werden als Entitätsreferenzen erkannt und zu Dimensionen, Structs ohne `id` werden flach in die übergeordnete Tabelle eingebettet. Das Ergebnis: ein konsistentes Star-Schema, das die natürliche Struktur der Daten widerspiegelt – ohne manuelle Modellierungsarbeit.
 
+Dabei taucht ein praktisches Problem auf: Spalten, die in der ersten eingelesenen Datei ausschließlich NULL-Werte enthalten, inferiert DuckDB als generischen `JSON`-Typ. Tauchen in späteren Dateien dann echte Werte auf, schlägt das Staging fehl. Die Lösung ist das **kanonische Sample** – eine synthetisch erzeugte JSON-Datei, die für jede Spalte mindestens einen Non-Null-Wert enthält. So ist die Typinferenz von Anfang an stabil, unabhängig davon, welche Archive danach geladen werden.
+
 ---
 
 ## Der Stack: dbt-duckdb, lokal und schnell
@@ -43,16 +45,18 @@ Ein wichtiges Detail: Die Dimensionen repräsentieren den *beobachteten* Zustand
 
 ## Einstieg in Minuten
 
-Das Projekt ist auf schnelle Reproduzierbarkeit ausgelegt. Nach dem Klonen des Repositories genügt `uv sync`, um alle Abhängigkeiten zu installieren. Dann eine Handvoll Archive-Dateien herunterladen, einmal `uv run main.py --sd` für die Schema Discovery – und die Pipeline läuft.
+Das Projekt ist auf schnelle Reproduzierbarkeit ausgelegt. Nach dem Klonen des Repositories genügt `uv sync`, um alle Abhängigkeiten zu installieren. Dann eine Handvoll Archive-Dateien herunterladen und mit `--canonical-schema` den ersten Lauf starten – das generiert die dbt-Modelle auf Basis eines kanonischen Samples und legt damit das Schema für alle weiteren Läufe fest.
 
 ```bash
 git clone https://github.com/idesis-gmbh/githubexperiments.git
 cd githubexperiments
 uv sync
 wget -P data/gharchive/ https://data.gharchive.org/2026-03-01-{0..23}.json.gz
-uv run main.py --sd
+uv run main.py --canonical-schema
 uv run main.py
 ```
+
+Das kanonische Sample und die generierten SQL-Modelle sind ins Repository eingecheckt – `--canonical-schema` muss nur nach einem Datenbank-Reset oder bei Schema-Änderungen im GitHub Archive erneut ausgeführt werden. Wer das Sample aus echten Daten erzeugen möchte, kann den zweistufigen Weg über `--infer-schema` gefolgt von `--canonical-sample` nehmen.
 
 Eine Stunde GitHub-Daten: ~50 MB komprimiert, ~150 MB in DuckDB. Ein voller Tag: ~1,2 GB komprimiert, ~3,6 GB in DuckDB. Für erste Analysen reicht eine einzelne Stunde.
 
