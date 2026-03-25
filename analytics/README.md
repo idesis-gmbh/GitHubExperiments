@@ -28,7 +28,7 @@ variable by the incremental pipeline:
 with raw_event as (
     select *
     from read_json_auto(
-        'data/gharchive/{{ var("file") }}',
+        'data/gharchive/{{ var("filename") }}',
         union_by_name=True
     )
 )
@@ -46,18 +46,24 @@ DuckDB's `read_json_auto` exposes the full nested schema of the GitHub Archive e
 via its type system. `sd.py` traverses this recursively to build a Python representation 
 of all ~700 attributes, then generates the dbt SQL files for dimensions and the fact table.
 
+A practical problem arises during schema discovery: columns with all NULL values in the 
+first processed file are inferred as JSON by DuckDB. When non-null values appear in 
+later files, staging fails. The canonical sample approach solves this: `sd.py` generates 
+a synthetic JSON file (`data/gharchive/canonical_sample.json`) that contains a 
+non-null value for every column, ensuring correct type inference.
+
 A few design decisions are baked into the generated SQL:
 
 - Structs with an `id` field are treated as entity references and reduced to their `id`
 - Structs without an `id` field are flattened into the parent model
 - List-typed columns are excluded
-- `performed_via_github_app` and optional attributes are excluded
+- `performed_via_github_app` is excluded
 - Entities where `id` is null are excluded (events where the entity was not present)
 
-The generated files are checked in — schema discovery only needs to be rerun after a 
-database reset or if the GitHub Archive schema changes:
+The generated files and canonical sample are checked in — schema discovery only needs 
+to be rerun after a database reset or if the GitHub Archive schema changes:
 ```bash
-uv run main.py --sd
+uv run main.py --canonical-schema
 ```
 
 ## Snapshots

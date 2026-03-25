@@ -47,13 +47,10 @@ wget -P data/gharchive/ https://data.gharchive.org/2026-03-{01..31}-{0..23}.json
 
 ## Running the Pipeline
 
-On first run, process the first file and generate dbt models from the discovered schema:
+On first run, process the first file and generate dbt models using the canonical sample:
 ```bash
-uv run main.py --sd
+uv run main.py --canonical-schema
 ```
-
-The generated SQL models are checked in — `--sd` only needs to be rerun after a 
-database reset or if the GitHub Archive schema changes.
 
 Then process all remaining files incrementally:
 ```bash
@@ -63,6 +60,13 @@ uv run main.py
 Each file is processed through the full dbt pipeline — staging, snapshots, dimensions,
 facts, and marts — and acknowledged in the control schema on success. Re-running
 skips already processed files.
+
+The generated SQL models and canonical sample are checked in — `--canonical-schema` 
+only needs to be rerun after a database reset or if the GitHub Archive schema changes.
+
+**Advanced usage:** If the canonical sample does not yet exist, it can be generated 
+from a real file using `--infer-schema` (infers schema directly) followed by  
+`--canonical-sample` (generates a canonical sample). 
 
 ## Exploring the Data
 
@@ -81,16 +85,18 @@ githubexperiments/
 ├── README.md
 ├── analytics/       # dbt project
 │   ├── dbt_project.yml
+│   ├── profiles.yml # dbt connection configuration
 │   ├── models/
 │   │   ├── staging/     # raw JSON ingestion via read_json_auto
-│   │   ├── dimensions/  # current state views (from snapshots)
+│   │   ├── dimensions/  # current state of each entity
 │   │   ├── facts/       # event fact table
 │   │   └── marts/       # aggregated models
 │   ├── snapshots/   # slowly changing dimension definitions
 │   ├── analyses/    # example queries
 │   └── dev.duckdb   # DuckDB database (generated, gitignored)
-└── data/            # gitignored — local data only
-    └── gharchive/   # downloaded .json.gz files
+└── data/
+    └── gharchive/   # canonical sample and downloaded .json.gz files
+        └── canonical_sample.json  # canonical sample for schema discovery
 ```
 
 ## Further Reading

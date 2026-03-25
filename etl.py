@@ -39,6 +39,8 @@ def dbt_run_select_staging(filename):
         [
             "dbt",
             "run",
+            "--profiles-dir",
+            "analytics",
             "--project-dir",
             "analytics",
             "--select",
@@ -57,6 +59,8 @@ def dbt_snapshot():
         [
             "dbt",
             "snapshot",
+            "--profiles-dir",
+            "analytics",
             "--project-dir",
             "analytics",
         ]
@@ -71,6 +75,8 @@ def dbt_run_exclude_staging():
         [
             "dbt",
             "run",
+            "--profiles-dir",
+            "analytics",
             "--project-dir",
             "analytics",
             "--exclude",
@@ -87,6 +93,8 @@ def dbt_test():
         [
             "dbt",
             "test",
+            "--profiles-dir",
+            "analytics",
             "--project-dir",
             "analytics",
         ]

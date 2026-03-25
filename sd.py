@@ -310,7 +310,7 @@ def generate_canonical_sample(filename):
     with duckdb.connect("dev.duckdb") as connection:
         schema = introspect_schema(connection)
         sample = canonical_sample(schema)
-        with open(f"data/gharchive/{filename}", "w", encoding="utf+8") as file:
+        with open(f"data/gharchive/{filename}", "w", encoding="utf-8") as file:
             json.dump(sample, file, indent=2)
 
 
