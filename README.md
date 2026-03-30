@@ -12,7 +12,7 @@ with slowly changing dimensions, running entirely locally.
 - [uv](https://docs.astral.sh/uv/) — Python package manager
 - [Git](https://git-scm.com/)
 - `wget` or `curl` for downloading dumps
-- ~x GB free disk space per day of GitHub Archive data
+- ~3 GB free disk space per day of GitHub Archive data
 
 ### Installation
 
@@ -41,9 +41,10 @@ wget -P data/gharchive/ https://data.gharchive.org/2026-03-{01..31}-{0..23}.json
 
 | Data | Compressed | DuckDB |
 |------|------------|--------|
-| 1 hour | ~50 MB | ~150 MB |
-| 1 day | ~1.2 GB | ~3.6 GB |
-| 1 month | ~30 GB | ~90 GB |
+| 1 hour | ~50 MB | ~100 MB |
+| 1 day | ~1 GB | ~2 GB |
+| 1 week | ~7 GB | ~14 GB |
+| 1 month | ~30 GB | ~60 GB |
 
 ## Running the Pipeline
 
@@ -63,6 +64,8 @@ skips already processed files.
 
 The generated SQL models and canonical sample are checked in — `--canonical-schema` 
 only needs to be rerun after a database reset or if the GitHub Archive schema changes.
+The canonical sample is also included in every staging run to ensure correct type 
+inference — see `analytics/README.md` for details.
 
 **Advanced usage:** If the canonical sample does not yet exist, it can be generated 
 from a real file using `--infer-schema` (infers schema directly) followed by  

@@ -10,6 +10,7 @@ select distinct
     payload.release."author"."id" AS "author_id",
     payload.release."body" AS "body",
     payload.release."created_at" AS "created_at",
+    payload.release."discussion_url" AS "discussion_url",
     payload.release."draft" AS "draft",
     payload.release."html_url" AS "html_url",
     payload.release."id" AS "id",

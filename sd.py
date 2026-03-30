@@ -5,7 +5,6 @@ import sys
 import duckdb
 
 EXCLUDED_COLUMNS = {
-    "discussion_url",  # optional?
     "performed_via_github_app",  # always a nested struct; excluded by policy
 }
 

@@ -1,7 +1,6 @@
 import glob
 import os
 import subprocess
-import sys
 import duckdb
 
 

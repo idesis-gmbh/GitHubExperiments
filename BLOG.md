@@ -24,7 +24,7 @@ Das Herzstück ist [dbt-duckdb](https://github.com/duckdb/dbt-duckdb): dbt als T
 
 Die Pipeline ist in klare Schichten aufgeteilt:
 
-- **Staging** liest einzelne `.json.gz`-Dateien über `read_json_auto` ein und vereinheitlicht per `union_by_name` die variablen Schemata der verschiedenen Event-Typen.
+- **Staging** liest jede `.json.gz`-Datei gemeinsam mit dem kanonischen Sample über `read_json_auto` ein – das Sample stellt korrekte Typinferenz sicher, wird aber per `where`-Klausel aus dem Ergebnis herausgefiltert. `union_by_name` vereinheitlicht die variablen Schemata der verschiedenen Event-Typen.
 - **Dimensions** bilden den aktuellen Zustand jeder Entität ab – User, Repository, Organisation, Issue und mehr. Standardmäßig per SCD1 (einfach und idempotent), optional per SCD2 mit vollständiger Änderungshistorie.
 - **Facts** enthält eine Zeile pro GitHub-Event mit skalaren Attributen und Fremdschlüsselreferenzen in die Dimensionstabellen.
 - **Marts** aggregieren die Faktdaten für typische Analysen: Aktivität nach Tag oder Tageszeit, aufgeschlüsselt nach Organisation, Repository, Event-Typ und Autor.
@@ -58,20 +58,27 @@ uv run main.py
 
 Das kanonische Sample und die generierten SQL-Modelle sind ins Repository eingecheckt – `--canonical-schema` muss nur nach einem Datenbank-Reset oder bei Schema-Änderungen im GitHub Archive erneut ausgeführt werden. Wer das Sample aus echten Daten erzeugen möchte, kann den zweistufigen Weg über `--infer-schema` gefolgt von `--canonical-sample` nehmen.
 
-Eine Stunde GitHub-Daten: ~50 MB komprimiert, ~150 MB in DuckDB. Ein voller Tag: ~1,2 GB komprimiert, ~3,6 GB in DuckDB. Für erste Analysen reicht eine einzelne Stunde.
+Eine Stunde GitHub-Daten: ~50 MB komprimiert, ~100 MB in DuckDB. Ein voller Tag: ~1 GB komprimiert, ~2 GB in DuckDB. Die Verarbeitung läuft dabei überraschend flott – pro Stunde Archivdaten dauert ein vollständiger Pipeline-Durchlauf unter einer Minute. Für erste Analysen reicht eine einzelne Stunde.
 
 ---
 
 ## Was lässt sich damit herausfinden?
 
-Mitgelieferte Beispielanalysen zeigen, wohin die Reise gehen kann:
+Sechs mitgelieferte Beispielanalysen zeigen, wohin die Reise gehen kann: Event-Typ-Verteilung, aktivste Repositories, aktivste Bots und User, aktivste Organisationen, stündliche Aktivitätsmuster und die Aufteilung zwischen Organisations- und persönlichen Repos. Alle Abfragen lassen sich direkt gegen die DuckDB-Datenbank ausführen – mit dem DuckDB-CLI, einem SQL-Client oder einem Notebook.
 
-- **Welche Event-Typen dominieren?** Push-Events, Pull Requests, Issues – wie verteilt sich die Aktivität?
-- **Welche Repositories sind am aktivsten?** Top-Repos nach Event-Aufkommen in einem beliebigen Zeitraum.
-- **Wann ist GitHub am aktivsten?** Stündliche Aktivitätsmuster über den Tag – aufschlussreich für globale Open-Source-Communitys.
-- **Organisationen vs. persönliche Repos?** Wie viel Aktivität entfällt auf Organisations-Repositories, wie viel auf persönliche Projekte?
+---
 
-Alle Analysen lassen sich direkt gegen die DuckDB-Datenbank ausführen – mit dem DuckDB-CLI, einem SQL-Client oder einem Notebook.
+## Sieben Tage GitHub – ein Blick in die Daten
+
+Um zu zeigen, was das System in der Praxis leistet, haben wir die Daten vom 1. bis 7. März 2026 verarbeitet – knapp **9,9 Millionen Events** aus dem öffentlichen GitHub-Archiv.
+
+**Push-Events dominieren klar.** Über 55 % aller Events sind `PushEvent`, gefolgt von `CreateEvent` (15,5 %) und `PullRequestEvent` (7,9 %). Das Verhältnis spiegelt wider, wie GitHub-Entwicklung tatsächlich aussieht: viel direktes Schreiben von Code, deutlich weniger formaler Review-Prozess.
+
+**Persönliche Repos machen 80 % der Aktivität aus.** Nur 20 % der Events stammen aus Organisations-Repositories – ein Hinweis darauf, dass GitHub nach wie vor eine stark von Einzelpersonen geprägte Plattform ist, auch wenn Organisationen in der öffentlichen Wahrnehmung dominieren.
+
+**Bots sind nicht zu übersehen.** Mit über einer Million Events führt `github-actions[bot]` die Bot-Rangliste mit weitem Abstand an, gefolgt von `dependabot[bot]` und `renovate[bot]`. Auffällig in den Top 20: `Copilot`, `chatgpt-codex-connector[bot]` und `gemini-code-assist[bot]` – KI-gestützte Entwicklungswerkzeuge haben sich innerhalb kürzester Zeit als feste Größe im GitHub-Ökosystem etabliert.
+
+**Die Top-Repositories verraten den Zeitgeist.** Unter den aktivsten Repos der Woche finden sich prominent KI-bezogene Projekte: `anthropics/claude-code`, `openai/symphony`, `affaan-m/everything-claude-code`. Solche Rankings sind naturgemäß ein Schnappschuss – welche Repositories gerade oben stehen, verschiebt sich von Woche zu Woche je nach Launches, viralen Momenten und Community-Aktivität. Genau das macht sie zu einem interessanten Signal: Wer regelmäßig nachschaut, bekommt ein Gefühl dafür, was die Entwickler-Community gerade beschäftigt.
 
 ---
 

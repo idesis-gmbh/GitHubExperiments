@@ -22,23 +22,26 @@ silent changes (never appearing in an event) are not captured.
 
 ## Staging
 
-The staging layer reads a single GitHub Archive file at a time, passed via a dbt 
-variable by the incremental pipeline:
+The staging layer reads a single GitHub Archive file alongside a canonical sample,
+passed via a dbt variable by the incremental pipeline:
 ```sql
-with raw_event as (
-    select *
-    from read_json_auto(
-        'data/gharchive/{{ var("filename") }}',
-        union_by_name=True
-    )
-)
 select *
-from raw_event
+from read_json_auto(
+    ['data/gharchive/canonical_sample.json',
+     'data/gharchive/{{ var("filename") }}'],
+    union_by_name=True,
+    timestampformat='auto',
+    dateformat='auto'
+)
+where id <> 'id of the canonical sample'
 ```
 
-`union_by_name=True` handles the schema variation across event types by unioning all 
-fields across the file. This produces a single `raw_event` table with a wide, deeply 
-nested schema that serves as the source for all downstream models.
+Including the canonical sample in every read ensures correct type inference for columns
+that may be null in the real file. The canonical sample row is excluded from results
+via the `where` clause.
+
+The canonical sample is included in every read to ensure correct type inference — see
+[Schema Discovery](#schema-discovery) for details.
 
 ## Schema Discovery
 
@@ -127,9 +130,6 @@ Archive event, with scalar attributes and foreign key references to the dimensio
 - Entity references reduced to their `id` (e.g. `actor_id`, `repo_id`, `org_id`)
 - Flattened payload attributes where the struct has no `id` field
 
-Note that `org_id` is null for events from personal repositories — joins to the `org` 
-dimension should use `LEFT JOIN` to avoid silently dropping these events.
-
 ## Marts
 
 Two marts aggregate the fact table for analytical consumption:
@@ -139,18 +139,17 @@ Two marts aggregate the fact table for analytical consumption:
 - **`activity_by_time.sql`** — event counts grouped by hour, org, repo, event type, 
   and actor; joined to the time dimension for intra-day analysis
 
-Both marts use `LEFT JOIN` on `org` to preserve events from personal repositories.
-
 ## Analyses
 
 The `analyses/` directory contains example queries that can be run directly 
 against `dev.duckdb` using the DuckDB CLI or any SQL client:
 
-- **Event type distribution** — what fraction of activity is push, PR, issue, etc.
-- **Most active repos** — top repositories by event count
-- **Activity by hour of day** — when during the day is GitHub most active
-- **Org vs personal activity** — what fraction of events originate from organisation 
-  repositories vs personal repositories
+- **`event_types.sql`** — event type distribution with percentages
+- **`active_repos.sql`** — most active repositories by event count
+- **`active_actors.sql`** — most active bots and users by event count
+- **`active_orgs.sql`** — most active organisations by event count
+- **`activity_by_hour.sql`** — event volume by hour of day
+- **`org_vs_personal.sql`** — organisation vs personal repository activity split
 
 ## Known Quirks
 
