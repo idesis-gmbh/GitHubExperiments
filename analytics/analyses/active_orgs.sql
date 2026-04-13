@@ -1,6 +1,6 @@
 select
     org_login,
-    count(*) as event_count
+    sum(event_count) as event_count
 from activity_by_date
 where org_type = 'Organization'
 group by org_login

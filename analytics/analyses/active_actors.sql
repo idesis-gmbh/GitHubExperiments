@@ -1,6 +1,6 @@
 select
     actor_login,
-    count(*) as event_count
+    sum(event_count) as event_count
 from activity_by_date
 where actor_type = 'Bot'
 group by actor_login
@@ -9,7 +9,7 @@ limit 20;
 
 select
     actor_login,
-    count(*) as event_count
+    sum(event_count) as event_count
 from activity_by_date
 where actor_type = 'User'
 group by actor_login
@@ -18,7 +18,7 @@ limit 20;
 
 /* select
     actor_login,
-    count(*) as event_count
+    sum(event_count) as event_count
 from activity_by_date
 where actor_type = 'Mannequin'
 group by actor_login
