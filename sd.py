@@ -126,14 +126,14 @@ def get_selected_columns(struct):
     )
 
 
-def generate_sqls(schema, roots):
-    sqls = []
+def generate_selects(schema, roots):
+    selects = []
     for root in roots:
         parts = root.split(".")
         struct = schema
         for part in parts[1:]:
             struct = struct[part]
-        sqls.append(
+        selects.append(
             Template("""
 select distinct
 $columns
@@ -148,24 +148,24 @@ where $id is not null
                 id=f'{".".join(parts[1:])}."id"',
             )
         )
-    return sqls
+    return selects
 
 
-def generate_scd1(name, sqls):
+def generate_scd1(name, selects):
     dimension = Template("""
 {{ config(
     unique_key='id'
 ) }}
 
 select distinct on (id) *
-from ($sqls)
+from ($selects)
 order by all
-""").substitute(sqls="union all".join(sqls))
+""").substitute(selects="union all".join(selects))
     with open(f"analytics/models/dimensions/{name}.sql", "w", encoding="utf-8") as file:
         print(dimension, file=file)
 
 
-def generate_scd2(name, sqls):
+def generate_scd2(name, selects):
     snapshot = Template("""
 {% snapshot $snapshot_name %}
 
@@ -174,11 +174,11 @@ def generate_scd2(name, sqls):
     strategy='check',
     check_cols='all',
 ) }}
-$sqls
+$selects
 {% endsnapshot %}
 """).substitute(
         snapshot_name=f"{name}_snapshot",
-        sqls="union".join(sqls),
+        selects="union".join(selects),
     )
     with open(f"analytics/snapshots/{name}.sql", "w", encoding="utf-8") as file:
         print(snapshot, file=file)
@@ -194,11 +194,11 @@ where dbt_valid_to is null
 
 
 def generate_dimension(schema, roots, name, scd_type=1):
-    sqls = generate_sqls(schema, roots)
+    selects = generate_selects(schema, roots)
     if scd_type == 1:
-        generate_scd1(name, sqls)
+        generate_scd1(name, selects)
     elif scd_type == 2:
-        generate_scd2(name, sqls)
+        generate_scd2(name, selects)
     else:
         assert False
 

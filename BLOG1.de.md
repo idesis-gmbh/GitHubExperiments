@@ -70,15 +70,15 @@ Sechs mitgelieferte Beispielanalysen zeigen, wohin die Reise gehen kann: Event-T
 
 ## Sieben Tage GitHub – ein Blick in die Daten
 
-Um zu zeigen, was das System in der Praxis leistet, haben wir die Daten vom 1. bis 7. März 2026 verarbeitet – knapp **9,9 Millionen Events** aus dem öffentlichen GitHub-Archiv.
+Um zu zeigen, was das System in der Praxis leistet, haben wir die Daten vom 1. bis 7. März 2026 verarbeitet – knapp **25,8 Millionen Events** aus dem öffentlichen GitHub-Archiv.
 
-**Push-Events dominieren klar.** Über 55 % aller Events sind `PushEvent`, gefolgt von `CreateEvent` (15,5 %) und `PullRequestEvent` (7,9 %). Das Verhältnis spiegelt wider, wie GitHub-Entwicklung tatsächlich aussieht: viel direktes Schreiben von Code, deutlich weniger formaler Review-Prozess.
+**Push-Events dominieren klar.** Über 69 % aller Events sind `PushEvent`, gefolgt von `CreateEvent` (8,6 %) und `PullRequestEvent` (7,5 %). Das Verhältnis spiegelt wider, wie GitHub-Entwicklung tatsächlich aussieht: viel direktes Schreiben von Code, deutlich weniger formaler Review-Prozess.
 
 **Persönliche Repos machen 80 % der Aktivität aus.** Nur 20 % der Events stammen aus Organisations-Repositories – ein Hinweis darauf, dass GitHub nach wie vor eine stark von Einzelpersonen geprägte Plattform ist, auch wenn Organisationen in der öffentlichen Wahrnehmung dominieren.
 
-**Bots sind nicht zu übersehen.** Mit über einer Million Events führt `github-actions[bot]` die Bot-Rangliste mit weitem Abstand an, gefolgt von `dependabot[bot]` und `renovate[bot]`. Auffällig in den Top 20: `Copilot`, `chatgpt-codex-connector[bot]` und `gemini-code-assist[bot]` – KI-gestützte Entwicklungswerkzeuge haben sich innerhalb kürzester Zeit als feste Größe im GitHub-Ökosystem etabliert.
+**Bots sind nicht zu übersehen.** Mit über 3,4 Millionen Events führt `github-actions[bot]` die Bot-Rangliste mit weitem Abstand an, gefolgt von `dependabot[bot]` und `renovate[bot]`. Auffällig in den Top 20: `Copilot`, `chatgpt-codex-connector[bot]` und `gemini-code-assist[bot]` – KI-gestützte Entwicklungswerkzeuge haben sich innerhalb kürzester Zeit als feste Größe im GitHub-Ökosystem etabliert.
 
-**Die Top-Repositories verraten den Zeitgeist.** Unter den aktivsten Repos der Woche finden sich prominent KI-bezogene Projekte: `anthropics/claude-code`, `openai/symphony`, `affaan-m/everything-claude-code`. Solche Rankings sind naturgemäß ein Schnappschuss – welche Repositories gerade oben stehen, verschiebt sich von Woche zu Woche je nach Launches, viralen Momenten und Community-Aktivität. Genau das macht sie zu einem interessanten Signal: Wer regelmäßig nachschaut, bekommt ein Gefühl dafür, was die Entwickler-Community gerade beschäftigt.
+**Die Top-Repositories überraschen.** Die aktivsten Repos der Woche sind oft keine bekannten Open-Source-Projekte, sondern Repositories mit hochfrequenten automatisierten Commits – Datenpipelines, Backup-Skripte, generierte Manifeste. Das ist kein Zufall: Wer viele kleine Commits in kurzer Zeit erzeugt, landet schnell ganz oben. Genau deshalb lohnt ein regelmäßiger Blick: Die Verschiebungen von Woche zu Woche – welche Projekte aufsteigen, welche verschwinden – sind ein eigenes Signal dafür, was die Entwickler-Community gerade bewegt.
 
 ---
 
