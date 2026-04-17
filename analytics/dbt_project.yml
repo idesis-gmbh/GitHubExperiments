@@ -22,7 +22,7 @@ models:
     facts:
       +materialized: incremental
     marts:
-      +materialized: view
+      +materialized: table
 
 # snapshots:
 #   analytics:

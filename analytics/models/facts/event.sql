@@ -32,6 +32,8 @@ select distinct
     "payload"."review"."id" AS "payload_review_id",
     "public" AS "public",
     "repo"."id" AS "repo_id",
-    "type" AS "type"
+    "type" AS "type",
+    cast("created_at" as date) AS "created_date",
+    date_trunc('hour', cast("created_at" as timestamp)) AS "created_hour"
 from {{ ref('raw_event') }}
 

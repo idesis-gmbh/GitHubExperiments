@@ -203,9 +203,11 @@ def generate_dimension(schema, roots, name, scd_type=1):
         assert False
 
 
-def generate_fact(struct):
+def generate_fact(struct, computed_columns):
     entity_columns = get_selected_columns(struct)
-    columns = (f'{name} AS "{alias}"' for name, alias in entity_columns)
+    columns = (
+        f'{name} AS "{alias}"' for name, alias in entity_columns + computed_columns
+    )
     fact = Template("""
 {{ config(
     unique_key='id'
@@ -302,7 +304,13 @@ def generate_dimensions_and_facts(schema):
         ["raw_event.payload.review"],
         "review",
     )
-    generate_fact(schema)
+    generate_fact(
+        schema,
+        [
+            ('cast("created_at" as date)', 'created_date'),
+            ("date_trunc('hour', cast(\"created_at\" as timestamp))", 'created_hour'),
+        ],
+    )
 
 
 def generate_canonical_sample(filename):

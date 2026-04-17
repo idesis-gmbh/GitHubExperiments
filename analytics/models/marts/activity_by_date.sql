@@ -12,7 +12,7 @@ select
     ou.type as org_type,
     count(*) as event_count
 from {{ ref('event') }} e
-inner join {{ ref('date') }} d on cast(e.created_at as date) = d.date
+inner join {{ ref('date') }} d on e.created_date = d.date
 left join {{ ref('repo') }} r on e.repo_id = r.id
 left join {{ ref('actor') }} a on e.actor_id = a.id
 left join {{ ref('user') }} au on a.id = au.id
