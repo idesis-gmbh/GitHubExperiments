@@ -60,7 +60,7 @@ Um zu zeigen, was Drilldown in der Praxis bedeutet, lohnt ein konkretes Beispiel
 
 Das Ergebnis ist im Explore-View ablesbar: 876 Events, verteilt auf mehrere Repositories (`steipete/gogcli`, `steipete/summarize`, `openclaw.ai` und weitere), dominiert von `IssueCommentEvent` (360) und `PushEvent` (324). Der Zeitverlauf zeigt einen deutlichen Aktivitätspeak um den 4. März, danach Rückgang – ein Muster, das in einer statischen Abfrage schlicht nicht sichtbar wäre.
 
-*[GIF: Explore-Sequenz, ~13 Sekunden – Drilldown von Repo Name → Actor Type → Actor Login]*
+*![GIF: Explore-Sequenz, ~13 Sekunden – Drilldown von Repo Name → Actor Type → Actor Login](explore.gif)*
 
 ---
 
@@ -74,7 +74,7 @@ Im Beispiel: Zeilen nach `Repo Name`, aufgeklappt nach `Actor Type`, Maß `Total
 
 Der Pivot-View macht diesen Unterschied ohne eine einzige SQL-Abfrage sichtbar.
 
-*[GIF: Pivot-Sequenz, ~16 Sekunden – Repo Name × Actor Type, openclaw aufgeklappt]*
+*![GIF: Pivot-Sequenz, ~16 Sekunden – Repo Name × Actor Type, openclaw aufgeklappt](pivot.gif)*
 
 ---
 

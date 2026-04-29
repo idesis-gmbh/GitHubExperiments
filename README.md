@@ -4,6 +4,11 @@ A worked example of building a local data warehouse on the [GitHub Archive](http
 using [dbt-duckdb](https://github.com/duckdb/dbt-duckdb) — from raw JSON to a star schema
 with slowly changing dimensions, running entirely locally.
 
+## Blog Posts
+
+- [From Raw JSON to Data Warehouse: Analyzing GitHub Data Locally](docs/blog1/README.md)
+- [Bringing the Data Warehouse to Life: Exploring GitHub Data Interactively with Rill](docs/blog2/README.md)
+
 ## Getting Started
 
 ### Prerequisites
@@ -97,9 +102,16 @@ githubexperiments/
 │   ├── snapshots/   # slowly changing dimension definitions
 │   ├── analyses/    # example queries
 │   └── dev.duckdb   # DuckDB database (generated, gitignored)
-└── data/
-    └── gharchive/   # canonical sample and downloaded .json.gz files
-        └── canonical_sample.json  # canonical sample for schema discovery
+├── data/
+│   └── gharchive/   # canonical sample and downloaded .json.gz files
+│       └── canonical_sample.json  # canonical sample for schema discovery
+└── docs/
+    ├── blog1/
+    │   └── README.md    # Blog post 1 (English)
+    └── blog2/
+        ├── README.md    # Blog post 2 (English)
+        ├── explore.gif
+        └── pivot.gif
 ```
 
 ## Further Reading

@@ -60,7 +60,7 @@ To illustrate what drilldown means in practice, a concrete example is worth more
 
 The result is visible in the Explore view: 876 events spread across several repositories (`steipete/gogcli`, `steipete/summarize`, `openclaw.ai` and others), dominated by `IssueCommentEvent` (360) and `PushEvent` (324). The time series shows a clear activity spike around 4 March, then a drop — a pattern that simply would not be visible in a static query.
 
-*[GIF: Explore sequence, ~13 seconds — drilldown from Repo Name → Actor Type → Actor Login]*
+*![GIF: Explore sequence, ~13 seconds — drilldown from Repo Name → Actor Type → Actor Login](explore.gif)*
 
 ---
 
@@ -74,7 +74,7 @@ In this example: rows by `Repo Name`, expanded by `Actor Type`, measure `Total e
 
 The Pivot view makes this distinction visible without a single SQL query.
 
-*[GIF: Pivot sequence, ~16 seconds — Repo Name × Actor Type, openclaw expanded]*
+*![GIF: Pivot sequence, ~16 seconds — Repo Name × Actor Type, openclaw expanded](pivot.gif)*
 
 ---
 
